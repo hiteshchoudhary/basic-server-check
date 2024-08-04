@@ -1,6 +1,17 @@
 const grid = document.getElementById('checkbox-grid');
 let checkboxes = new Array(100000).fill(false);
-const ws = new WebSocket('ws://localhost:8080');
+
+// Detect the protocol (http or https)
+const protocol = window.location.protocol === 'https:' ? 'wss' : 'ws';
+
+// Detect the hostname (localhost, or the production domain)
+const host = window.location.host;
+
+// Construct the WebSocket URL
+const wsUrl = `${protocol}://${host}/`;
+
+// Establish the WebSocket connection
+const ws = new WebSocket(wsUrl);
 
 ws.onopen = () => {
   console.log('WebSocket connection opened');
@@ -9,7 +20,7 @@ ws.onopen = () => {
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
   if (Array.isArray(data)) {
-    checkboxes = data; // Initial state
+    checkboxes = data; // Set initial state from server
     renderCheckboxes();
   } else {
     checkboxes[data.index] = data.checked;
@@ -32,7 +43,7 @@ const handleCheckboxChange = (index) => {
 };
 
 const renderCheckboxes = () => {
-  grid.innerHTML = ''; // Clear grid
+  grid.innerHTML = ''; // Clear the grid before rendering
   checkboxes.forEach((checked, index) => {
     const checkbox = document.createElement('input');
     checkbox.type = 'checkbox';
@@ -43,3 +54,6 @@ const renderCheckboxes = () => {
     grid.appendChild(checkbox);
   });
 };
+
+// Initial rendering of checkboxes
+renderCheckboxes();

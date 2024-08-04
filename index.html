@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Checkboxes</title>
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            background-color: black;
+            color: white;
+        }
+
+        h1 {
+            margin: 20px 0;
+            font-size: 24px;
+            text-align: center;
+        }
+
+        #checkbox-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
+            gap: 8px;
+            padding: 20px;
+            max-width: 90vw; /* Ensures no horizontal scroll */
+            justify-content: center;
+            background-color: #ffffff;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .checkbox {
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            transform: scale(1.5);
+            border-radius: 50%;
+            border: 2px solid #0070f3;
+            transition: background-color 0.3s, transform 0.3s;
+            margin: 3px;
+        }
+        a {
+            color: white;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            background-color: #ff7700;
+            /* looks like a button */
+            padding: 10px 20px;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <h1>WebSocket Checkboxes <a href="https://chaicode.com">Visit chaicode</a> </h1>
+
+    </div>
+    <div id="checkbox-grid"></div>
+    <script src="script.js"></script>
+</body>
+</html>

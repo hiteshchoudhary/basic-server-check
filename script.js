@@ -82,7 +82,7 @@ function renderCheckboxes() {
         checkbox.id = `checkbox-${i}`;
         checkbox.className = 'checkbox';
         checkbox.checked = checkboxes[i];
-        checkbox.disabled = true; // Disable checkboxes initially
+        checkbox.disabled = !isConnected; // Disable or enable based on connection status
         checkbox.onchange = () => handleCheckboxChange(i);
         fragment.appendChild(checkbox);
     }

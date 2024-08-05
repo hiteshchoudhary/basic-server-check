@@ -106,6 +106,7 @@ function startTimer() {
         if (timeLeft <= 0) {
             clearInterval(countdownInterval);
             ws.close();
+            disableCheckboxes(); // Disable all checkboxes when the timer ends
         }
     }, 1000);
 }
@@ -120,6 +121,8 @@ function disableCheckboxes() {
     document.querySelectorAll('.checkbox').forEach(checkbox => {
         checkbox.disabled = true;
     });
+    grid.style.display = 'none'; // Hide the grid after disconnection
+    connectBtn.style.display = 'inline-block'; // Show the connect button again
 }
 
 // Lazy loading: load more checkboxes as the user scrolls

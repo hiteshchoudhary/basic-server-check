@@ -10,6 +10,9 @@ let checkboxes = new Array(100000).fill(false);
 let ws;
 let countdownInterval;
 
+const CHECKBOX_BATCH_SIZE = 500; // Number of checkboxes to load at a time
+let loadedCheckboxes = 0; // Track how many checkboxes have been loaded
+
 // Automatically connect to WebSocket to get initial stats and checkbox state
 connectToWebSocket();
 
@@ -21,7 +24,6 @@ function connectToWebSocket() {
 
     ws.onopen = () => {
         console.log('WebSocket connection opened');
-        // We don't show the grid or start the timer until the user connects manually
     };
 
     ws.onmessage = (event) => {
@@ -37,7 +39,7 @@ function connectToWebSocket() {
         } else if (data.index !== undefined && data.checked !== undefined) {
             // Received individual checkbox update
             checkboxes[data.index] = data.checked;
-            document.getElementById(`checkbox-${data.index}`).checked = data.checked;
+            updateCheckbox(data.index, data.checked);
         }
     };
 
@@ -67,16 +69,25 @@ function handleCheckboxChange(index) {
 }
 
 function renderCheckboxes() {
-    grid.innerHTML = '';
-    checkboxes.forEach((checked, index) => {
+    const fragment = document.createDocumentFragment();
+    for (let i = loadedCheckboxes; i < Math.min(checkboxes.length, loadedCheckboxes + CHECKBOX_BATCH_SIZE); i++) {
         const checkbox = document.createElement('input');
         checkbox.type = 'checkbox';
-        checkbox.id = `checkbox-${index}`;
+        checkbox.id = `checkbox-${i}`;
         checkbox.className = 'checkbox';
+        checkbox.checked = checkboxes[i];
+        checkbox.onchange = () => handleCheckboxChange(i);
+        fragment.appendChild(checkbox);
+    }
+    grid.appendChild(fragment);
+    loadedCheckboxes += CHECKBOX_BATCH_SIZE;
+}
+
+function updateCheckbox(index, checked) {
+    const checkbox = document.getElementById(`checkbox-${index}`);
+    if (checkbox) {
         checkbox.checked = checked;
-        checkbox.onchange = () => handleCheckboxChange(index);
-        grid.appendChild(checkbox);
-    });
+    }
 }
 
 function startTimer() {
@@ -91,6 +102,13 @@ function startTimer() {
         }
     }, 1000);
 }
+
+// Lazy loading: load more checkboxes as the user scrolls
+window.addEventListener('scroll', () => {
+    if (window.innerHeight + window.scrollY >= document.body.offsetHeight) {
+        renderCheckboxes();
+    }
+});
 
 usernameInput.addEventListener('input', () => {
     const username = usernameInput.value.trim();

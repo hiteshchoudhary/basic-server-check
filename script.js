@@ -12,6 +12,7 @@ let countdownInterval;
 
 const CHECKBOX_BATCH_SIZE = 500; // Number of checkboxes to load at a time
 let loadedCheckboxes = 0; // Track how many checkboxes have been loaded
+let isConnected = false; // Track connection status
 
 // Automatically connect to WebSocket to get initial stats and checkbox state
 connectToWebSocket();
@@ -48,6 +49,8 @@ function connectToWebSocket() {
         connectBtn.style.display = 'inline-block';
         grid.style.display = 'none';
         timerElement.textContent = ''; // Clear the timer display
+        isConnected = false; // Reset connection status
+        disableCheckboxes(); // Disable checkboxes on disconnect
     };
 
     ws.onerror = (error) => {
@@ -60,9 +63,12 @@ function startConnection() {
     connectBtn.style.display = 'none';
     usernameDisplay.appendChild(timerElement); // Add the timer to the username display
     startTimer();
+    isConnected = true; // Set connection status to true
+    enableCheckboxes(); // Enable checkboxes after connection
 }
 
 function handleCheckboxChange(index) {
+    if (!isConnected) return; // Prevent interaction if not connected
     const newCheckedState = !checkboxes[index];
     checkboxes[index] = newCheckedState;
     ws.send(JSON.stringify({ index, checked: newCheckedState }));
@@ -76,6 +82,7 @@ function renderCheckboxes() {
         checkbox.id = `checkbox-${i}`;
         checkbox.className = 'checkbox';
         checkbox.checked = checkboxes[i];
+        checkbox.disabled = true; // Disable checkboxes initially
         checkbox.onchange = () => handleCheckboxChange(i);
         fragment.appendChild(checkbox);
     }
@@ -101,6 +108,18 @@ function startTimer() {
             ws.close();
         }
     }, 1000);
+}
+
+function enableCheckboxes() {
+    document.querySelectorAll('.checkbox').forEach(checkbox => {
+        checkbox.disabled = false;
+    });
+}
+
+function disableCheckboxes() {
+    document.querySelectorAll('.checkbox').forEach(checkbox => {
+        checkbox.disabled = true;
+    });
 }
 
 // Lazy loading: load more checkboxes as the user scrolls

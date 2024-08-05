@@ -5,33 +5,69 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>WebSocket Checkboxes</title>
     <style>
+        /* Dark mode styles */
         body {
             margin: 0;
+            padding: 20px; /* Padding from all sides */
             font-family: Arial, sans-serif;
+            background-color: #121212;
+            color: #e0e0e0;
             display: flex;
             flex-direction: column;
             align-items: center;
             justify-content: center;
             min-height: 100vh;
-            background-color: black;
+        }
+
+        #navbar {
+            width: 100%;
+            padding: 10px;
+            background-color: #1f1f1f;
+            color: white;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-radius: 5px;
+        }
+
+        #stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        #connection-status {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #user-info {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #username-display {
+            font-weight: bold;
+        }
+
+        #username-input {
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: #333;
             color: white;
         }
 
-        h1 {
-            margin: 20px 0;
-            font-size: 24px;
-            text-align: center;
-        }
-
         #checkbox-grid {
-            display: grid;
+            display: none;
             grid-template-columns: repeat(auto-fill, minmax(24px, 1fr));
-            gap: 8px;
+            gap: 5px;
             padding: 20px;
-            max-width: 90vw; /* Ensures no horizontal scroll */
+            max-width: 90vw;
             justify-content: center;
-            background-color: #ffffff;
-            border: 1px solid #ddd;
+            background-color: #1f1f1f;
+            border: 1px solid #333;
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
         }
@@ -41,11 +77,30 @@
             height: 20px;
             cursor: pointer;
             transform: scale(1.5);
-            border-radius: 50%;
+            border-radius: 4px;
             border: 2px solid #0070f3;
             transition: background-color 0.3s, transform 0.3s;
-            margin: 3px;
         }
+
+        #connect-btn {
+            padding: 5px 10px;
+            background-color: #28a745;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        #connect-btn:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        h1 {
+            margin: 20px 0;
+            text-align: center;
+        }
+
         a {
             color: white;
             text-decoration: none;
@@ -57,13 +112,26 @@
             border-radius: 5px;
             transition: background-color 0.3s;
         }
+
+        a:hover {
+            background-color: #e86500;
+        }
     </style>
 </head>
 <body>
-    <div>
-        <h1>WebSocket Checkboxes <a href="https://chaicode.com">Visit chaicode</a> </h1>
-
+    <div id="navbar">
+        <div id="stats">
+            <div>Total Connections: <span id="total-connections">0</span></div>
+            <div>Total Active Users: <span id="active-users">0</span></div>
+        </div>
+        <div id="user-info">
+            <input type="text" id="username-input" placeholder="Enter your name" />
+            <button id="connect-btn" disabled>Connect</button>
+            <span id="username-display"></span>
+        </div>
     </div>
+
+    <h1>WebSocket Checkboxes <a href="https://chaicode.com">Visit chaicode</a></h1>
     <div id="checkbox-grid"></div>
     <script src="script.js"></script>
 </body>

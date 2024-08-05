@@ -1,58 +1,108 @@
-const http = require('http');
 const WebSocket = require('ws');
+const http = require('http');
 const fs = require('fs');
 const path = require('path');
 
+// Create HTTP server to serve the static files (HTML, JS, CSS)
 const server = http.createServer((req, res) => {
-  if (req.method === 'GET') {
-    // Serve the HTML and JS files
-    if (req.url === '/') {
-      fs.readFile(path.join(__dirname, 'index.html'), (err, data) => {
-        if (err) {
-          res.writeHead(500);
-          res.end('Error loading index.html');
-        } else {
-          res.writeHead(200, { 'Content-Type': 'text/html' });
-          res.end(data);
+    if (req.method === 'GET') {
+        let filePath = '.' + req.url;
+        if (filePath === './') {
+            filePath = './index.html';
         }
-      });
-    } else if (req.url === '/script.js') {
-      fs.readFile(path.join(__dirname, 'script.js'), (err, data) => {
-        if (err) {
-          res.writeHead(500);
-          res.end('Error loading script.js');
-        } else {
-          res.writeHead(200, { 'Content-Type': 'application/javascript' });
-          res.end(data);
-        }
-      });
-    } else {
-      res.writeHead(404);
-      res.end();
+
+        const extname = String(path.extname(filePath)).toLowerCase();
+        const mimeTypes = {
+            '.html': 'text/html',
+            '.js': 'application/javascript',
+            '.css': 'text/css',
+            '.json': 'application/json',
+            '.png': 'image/png',
+            '.jpg': 'image/jpg',
+            '.gif': 'image/gif',
+            '.svg': 'image/svg+xml',
+            '.wav': 'audio/wav',
+            '.mp4': 'video/mp4',
+            '.woff': 'application/font-woff',
+            '.ttf': 'application/font-ttf',
+            '.eot': 'application/vnd.ms-fontobject',
+            '.otf': 'application/font-otf',
+            '.wasm': 'application/wasm'
+        };
+
+        const contentType = mimeTypes[extname] || 'application/octet-stream';
+
+        fs.readFile(filePath, (error, content) => {
+            if (error) {
+                if (error.code == 'ENOENT') {
+                    fs.readFile('./404.html', (error, content) => {
+                        res.writeHead(404, { 'Content-Type': 'text/html' });
+                        res.end(content, 'utf-8');
+                    });
+                } else {
+                    res.writeHead(500);
+                    res.end('Sorry, there was an error: ' + error.code + ' ..\n');
+                }
+            } else {
+                res.writeHead(200, { 'Content-Type': contentType });
+                res.end(content, 'utf-8');
+            }
+        });
     }
-  }
 });
 
+// Create WebSocket server on top of HTTP server
 const wss = new WebSocket.Server({ server });
 
+let totalConnections = 0;
+let activeUsers = 0;
 let checkboxState = new Array(100000).fill(false);
 
-wss.on('connection', ws => {
-  ws.send(JSON.stringify(checkboxState)); // Send initial state to new connection
+wss.on('connection', (ws) => {
+    totalConnections++;
+    activeUsers++;
 
-  ws.on('message', message => {
-    const { index, checked } = JSON.parse(message);
-    checkboxState[index] = checked;
+    // Send initial checkbox state and stats to new connection
+    ws.send(JSON.stringify(checkboxState));
+    ws.send(JSON.stringify({ totalConnections, activeUsers }));
 
-    // Broadcast the update to all connected clients
-    wss.clients.forEach(client => {
-      if (client.readyState === WebSocket.OPEN) {
-        client.send(JSON.stringify({ index, checked }));
-      }
+    ws.on('message', (message) => {
+        const data = JSON.parse(message);
+
+        if (data.index !== undefined && data.checked !== undefined) {
+            checkboxState[data.index] = data.checked;
+            broadcastCheckboxState(data);
+        }
     });
-  });
+
+    ws.on('close', () => {
+        activeUsers--;
+        broadcastStats();
+    });
+
+    // Broadcast stats to all clients
+    broadcastStats();
 });
 
-server.listen(8080, () => {
-  console.log('Server is listening on http://localhost:8080');
+function broadcastStats() {
+    const stats = { totalConnections, activeUsers };
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(stats));
+        }
+    });
+}
+
+function broadcastCheckboxState(data) {
+    wss.clients.forEach((client) => {
+        if (client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify(data));
+        }
+    });
+}
+
+// Listen on port 8080
+const PORT = 8080;
+server.listen(PORT, () => {
+    console.log(`Server is listening on port ${PORT}`);
 });
